@@ -15,7 +15,7 @@ public class DbQuery {
 
     public String getAdminsTableColumnCount() {
         String query =
-                String.format("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE table_catalog = 'flowyDB' -- the database AND table_name = 'admins'");
+                String.format("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE table_catalog = 'flowyDB' AND table_name = 'admins'");
         return query;
     }
 }

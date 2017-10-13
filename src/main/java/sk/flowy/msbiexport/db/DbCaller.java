@@ -1,12 +1,11 @@
 package sk.flowy.msbiexport.db;
 
+import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
+@Log4j
 @Component
 public class DbCaller {
 
@@ -19,7 +18,9 @@ public class DbCaller {
 
     public void getAllAttributes() {
         String query = dbQuery.getAdminsTableColumnCount();
-        jdbcTemplate.queryForObject(query,Integer.class);
+        log.info("Querying DB: " + query);
+        Integer countOfColumns = jdbcTemplate.queryForObject(query,Integer.class);
+        log.info("Count of columns in admins table: " + countOfColumns);
     }
 }
 
