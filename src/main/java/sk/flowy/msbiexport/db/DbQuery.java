@@ -2,20 +2,21 @@ package sk.flowy.msbiexport.db;
 
 import org.springframework.stereotype.Component;
 
-import java.sql.SQLException;
 
 @Component
 public class DbQuery {
 
-    public String getAllRecordFromAtributy() {
+    public String getListOfTables() {
         String query =
-                String.format("SELECT * FROM atributy");
+                String.format("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_CATALOG='flowyDB'");
         return query;
     }
 
-    public String getAdminsTableColumnCount() {
+    public String getAlldata(String tableName) {
         String query =
-                String.format("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE table_catalog = 'flowyDB' AND table_name = 'admins'");
+                new StringBuilder("SELECT * FROM ")
+                .append(tableName).toString();
         return query;
     }
 }
+
