@@ -1,22 +1,9 @@
 package sk.flowy.msbiexport.security;
 
 import com.auth0.jwt.exceptions.JWTDecodeException;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-
-import java.util.Date;
-
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.GenericFilterBean;
 
 import javax.servlet.FilterChain;
@@ -28,12 +15,16 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 import static com.auth0.jwt.JWT.decode;
-import static org.joda.time.LocalDate.now;
 import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
-import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
+/**
+ * Filter that gets invoked first with every http request made to any controller of this service.
+ * Serves as a security solution. Filter checks every incoming request's header for Authorization key.
+ * If "Authorization" header contains bearer token, then this token is verified with Authorization server.
+ * Only requests with authorized tokens are permitted to fly further.
+ */
 @Component
 @Order(value = HIGHEST_PRECEDENCE)
 public class SecurityFilter extends GenericFilterBean {
@@ -44,6 +35,11 @@ public class SecurityFilter extends GenericFilterBean {
 
     private TokenRepository tokenRepository;
 
+    /**
+     * Constructor.
+     *
+     * @param tokenRepository token repo for retrieving valid tokens.
+     */
     @Autowired
     public SecurityFilter(TokenRepository tokenRepository) {
         this.tokenRepository = tokenRepository;
@@ -65,7 +61,6 @@ public class SecurityFilter extends GenericFilterBean {
             response.sendError(BAD_REQUEST.value(), "Invalid token!");
             return;
         }
-
         String token = requestToken.substring(BEARER_OFFSET);
 
         try {
@@ -74,8 +69,8 @@ public class SecurityFilter extends GenericFilterBean {
             response.sendError(UNAUTHORIZED.value(), "Invalid token!");
             return;
         }
-        Date expiresAt = decode(token).getExpiresAt();
-        CallResponse callResponse = tokenRepository.checkToken(requestToken, expiresAt.before(now().toDate()));
+
+        CallResponse callResponse = tokenRepository.checkTokenValidity(token);
 
         if (callResponse.hasError()) {
             response.sendError(UNAUTHORIZED.value(), callResponse.getError());
