@@ -35,7 +35,7 @@ public class DbCaller {
             String result = resultSet.getString("TABLE_NAME");
             return result;
         });
-        log.info("Count of tables read in flowyDB: " + listOfTables.size());
+        log.info("Count of tables read in flowy: " + listOfTables.size());
     }
 
     public void getAllFromTable(String tableName) {

@@ -8,7 +8,7 @@ public class DbQuery {
 
     public String getListOfTables() {
         String query =
-                String.format("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_CATALOG='flowyDB'");
+                String.format("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='flowy'");
         return query;
     }
 
