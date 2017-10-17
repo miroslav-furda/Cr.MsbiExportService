@@ -1,22 +1,24 @@
 package sk.flowy.msbiexport.security;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.DecodedJWT;
+import com.auth0.jwt.exceptions.JWTDecodeException;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+
+import java.util.Date;
+
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.annotation.Order;
-import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SetOperations;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.GenericFilterBean;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -24,36 +26,30 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.time.LocalDate;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
+import static com.auth0.jwt.JWT.decode;
+import static org.joda.time.LocalDate.now;
 import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
 import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
-@Order(value = HIGHEST_PRECEDENCE)
 @Component
+@Order(value = HIGHEST_PRECEDENCE)
 public class SecurityFilter extends GenericFilterBean {
 
     private static final String AUTHORIZATION = "Authorization";
-    private static final String HASH_NAME = "tokens";
+    private static final Integer BEARER_OFFSET = 7;
+    private static final String TOKEN_REGEX = "^Bearer .+";
 
     @Value("${checkTokenUrl}")
     private String checkTokenUrl;
 
-    private final RedisTemplate<String, Date> redisTemplate;
-    private HashOperations<String, String, Date> hashOperations;
+    private RestTemplate restTemplate;
 
     @Autowired
-    public SecurityFilter(RedisTemplate<String, Date> redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
-
-    @PostConstruct
-    public void init() {
-        hashOperations = redisTemplate.opsForHash();
+    public SecurityFilter(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
     }
 
     @Override
@@ -61,38 +57,63 @@ public class SecurityFilter extends GenericFilterBean {
             throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
-        String bearerToken = request.getHeader(AUTHORIZATION);
 
-        if (bearerToken == null) {
-            response.sendError(UNAUTHORIZED.value(), "Missing token in Authorization header!");
+        String requestToken = request.getHeader(AUTHORIZATION);
+        if (requestToken == null) {
+            response.sendError(BAD_REQUEST.value(), "Missing token!");
             return;
         }
 
-        Date expirationDate = hashOperations.get(HASH_NAME, bearerToken);
-        if (expirationDate != null) {
-            if (new Date().after(expirationDate)) {
-                hashOperations.delete(HASH_NAME, bearerToken);
-                response.sendError(UNAUTHORIZED.value(), "Token is expired!");
-                return;
-            }
-            filterChain.doFilter(servletRequest, servletResponse);
-        }
-
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(AUTHORIZATION, bearerToken);
-        ResponseEntity<Response> responseEntity = restTemplate.exchange(checkTokenUrl, GET, new HttpEntity<>
-                (headers), Response.class);
-
-        if (responseEntity.getBody().getError() != null) {
-            response.sendError(UNAUTHORIZED.value(), responseEntity.getBody().getError());
+        if (!requestToken.matches(TOKEN_REGEX)) {
+            response.sendError(BAD_REQUEST.value(), "Invalid token!");
             return;
         }
 
-        if (responseEntity.getBody().getSuccess() != null) {
-            Date expiresAt = JWT.decode(bearerToken).getExpiresAt();
-            hashOperations.put(HASH_NAME, bearerToken, expiresAt);
+        String token = requestToken.substring(BEARER_OFFSET);
+
+        try {
+            decode(token);
+        } catch (JWTDecodeException e) {
+            response.sendError(UNAUTHORIZED.value(), "Invalid token!");
+            return;
         }
+        Date expiresAt = decode(token).getExpiresAt();
+        CallResponse callResponse = checkToken(requestToken, expiresAt.before(now().toDate()));
+
+        if (callResponse.hasError()) {
+            response.sendError(UNAUTHORIZED.value(), callResponse.getError());
+            return;
+        }
+
         filterChain.doFilter(servletRequest, servletResponse);
+    }
+
+    @Cacheable(value = "token", unless = "tokenExpired")
+    @CacheEvict(value = "token", condition = "tokenExpired", beforeInvocation = true)
+    public CallResponse checkToken(String requestToken, boolean tokenExpired) {
+        if (tokenExpired) {
+            CallResponse callResponse = new CallResponse();
+            callResponse.setError("Token is expired!");
+            return callResponse;
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(AUTHORIZATION, requestToken);
+
+        ResponseEntity<CallResponse> responseEntity = restTemplate.exchange(checkTokenUrl, GET, new HttpEntity<>
+                (headers), CallResponse.class);
+
+        return responseEntity.getBody();
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    static class CallResponse {
+        private String success;
+        private String error;
+
+        boolean hasError() {
+            return error != null;
+        }
     }
 }
