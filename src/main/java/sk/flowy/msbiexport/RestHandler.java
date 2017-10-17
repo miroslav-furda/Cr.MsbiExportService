@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import sk.flowy.msbiexport.db.DbCaller;
 
+import javax.servlet.http.HttpServletResponse;
+
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @Log4j
@@ -30,11 +32,39 @@ public class RestHandler {
 
     @RequestMapping(
             value = "/flowy/export/MSBI",
+            produces = "application/zip",
             method = GET)
-    public @ResponseBody ResponseEntity<String> createExportForMSBI() {
+    public @ResponseBody ResponseEntity<String> createExportForMSBI(HttpServletResponse response) {
 
         log.info("I am getting all attributes ");
         dbCaller.exportDataForMSBI();
+
+//        response.setStatus(HttpServletResponse.SC_OK);
+//        response.addHeader("Content-Disposition", "attachment; filename=\"test.zip\"");
+//
+//        ZipOutputStream zipOutputStream = null;
+//        try {
+//            zipOutputStream = new ZipOutputStream(response.getOutputStream());
+//            Stream files =  Files.list(dbCaller.getExportDirectoryHandler().getTempDirPath());
+//            files.forEach(getTableData(""));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//
+//        //packing files
+//        for (File file : files) {
+//            //new zip entry and copying inputstream with file to zipOutputStream, after all closing streams
+//            zipOutputStream.putNextEntry(new ZipEntry(file.getName()));
+//            FileInputStream fileInputStream = new FileInputStream(file);
+//
+//            IOUtils.copy(fileInputStream, zipOutputStream);
+//
+//            fileInputStream.close();
+//            zipOutputStream.closeEntry();
+//        }
+//
+//        zipOutputStream.close();
         return null;
     }
 
@@ -45,7 +75,7 @@ public class RestHandler {
             @PathVariable String table
     ) {
         log.info("Getting all data for: " + table);
-        dbCaller.getAllFromTable(table);
+        dbCaller.getAllFromTable(table, "");
         return null;
     }
 

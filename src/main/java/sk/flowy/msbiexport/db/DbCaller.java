@@ -1,13 +1,18 @@
 package sk.flowy.msbiexport.db;
 
 import com.opencsv.ResultSetHelperService;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import sk.flowy.msbiexport.csv.ExportDirectoryHandler;
 import sk.flowy.msbiexport.csv.ExportFile;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +26,10 @@ public class DbCaller {
 
     @Autowired
     private DbQuery dbQuery;
+
+    @Getter
+    @Autowired
+    private ExportDirectoryHandler exportDirectoryHandler;
 
     private ExportFile exportFile;
 
@@ -38,9 +47,9 @@ public class DbCaller {
         log.info("Count of tables read in flowy: " + listOfTables.size());
     }
 
-    public void getAllFromTable(String tableName) {
+    public void getAllFromTable(String tableName, String tempDirPath) {
         String query = dbQuery.getAlldata(tableName);
-        exportFile = new ExportFile(tableName);
+        exportFile = new ExportFile(tempDirPath + "/" +tableName);
         log.info("Query: " + query);
         List<String[]> data  = new ArrayList<>();
         final int[] iteration = {0};
@@ -63,11 +72,11 @@ public class DbCaller {
 
     public void exportDataForMSBI() {
         getListOfTables();
+        log.info("Temp files are in: " + exportDirectoryHandler.getTempDirPath().toString());
         for (String tableName : listOfTables
              ) {
-            getAllFromTable(tableName);
+            getAllFromTable(tableName, exportDirectoryHandler.getTempDirPath().toString());
         }
     }
-
 }
 
