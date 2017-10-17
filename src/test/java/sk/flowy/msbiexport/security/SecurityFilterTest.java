@@ -13,8 +13,10 @@ import org.mockito.internal.matchers.Any;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -42,6 +44,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.auth0.jwt.algorithms.Algorithm.HMAC256;
+import static java.util.Calendar.DATE;
 import static org.mockito.Matchers.*;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
@@ -70,7 +73,7 @@ public class SecurityFilterTest {
     private ServletRequest servletRequest;
     private ServletResponse servletResponse;
     private FilterChain filterChain;
-    private static String expiredToken;
+    private String expiredToken;
 
     @Before
     public void setup() throws UnsupportedEncodingException {
@@ -79,25 +82,23 @@ public class SecurityFilterTest {
         filterChain = mock(FilterChain.class);
 
         Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DATE, -1);
+        cal.add(DATE, -1);
         cal.getTime();
         expiredToken = "Bearer " + JWT.create().withExpiresAt(cal.getTime()).sign(HMAC256("secret"));
 
-        securityFilter = new SecurityFilter(restTemplate);
-        setField(securityFilter, "checkTokenUrl", SERVER_NAME);
+        TokenRepositoryImpl tokenRepository = new TokenRepositoryImpl(restTemplate);
+        setField(tokenRepository, "checkTokenUrl", SERVER_NAME);
+        securityFilter = new SecurityFilter(tokenRepository);
 
         HttpHeaders rightHeader = new HttpHeaders();
         rightHeader.add(AUTHORIZATION, VALID_TOKEN);
-        when(restTemplate.exchange(SERVER_NAME, GET, new HttpEntity<>(rightHeader),
-                SecurityFilter
-                        .CallResponse.class))
-                .thenReturn(new ResponseEntity<>(new SecurityFilter.CallResponse("true", null), OK));
+        when(restTemplate.exchange(SERVER_NAME, GET, new HttpEntity<>(rightHeader), CallResponse.class))
+                .thenReturn(new ResponseEntity<>(new CallResponse("true", null), OK));
 
         HttpHeaders wrongHeader = new HttpHeaders();
         wrongHeader.add(AUTHORIZATION, INVALID_TOKEN);
-        when(restTemplate.exchange(SERVER_NAME, GET, new HttpEntity<>(wrongHeader),
-                SecurityFilter.CallResponse.class))
-                .thenReturn(new ResponseEntity<>(new SecurityFilter.CallResponse(null, "token_invalid"), BAD_REQUEST));
+        when(restTemplate.exchange(SERVER_NAME, GET, new HttpEntity<>(wrongHeader), CallResponse.class))
+                .thenReturn(new ResponseEntity<>(new CallResponse(null, "token_invalid"), BAD_REQUEST));
     }
 
     @Test
@@ -147,9 +148,9 @@ public class SecurityFilterTest {
         when(((HttpServletRequest) servletRequest).getHeader(AUTHORIZATION)).thenReturn(VALID_TOKEN);
         securityFilter.doFilter(servletRequest, servletResponse, filterChain);
 
-        verify(restTemplate, times(1)).exchange(anyString(), anyObject(), anyObject(), eq(SecurityFilter.CallResponse
-                .class));
-        verify(filterChain).doFilter(servletRequest, servletResponse);
+        verify(restTemplate, times(1)).exchange(anyString(), anyObject(), anyObject(),
+                eq(CallResponse.class));
+        verify(filterChain, times(1)).doFilter(servletRequest, servletResponse);
     }
 
     @Configuration

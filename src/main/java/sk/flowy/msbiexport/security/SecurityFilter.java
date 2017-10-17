@@ -42,14 +42,11 @@ public class SecurityFilter extends GenericFilterBean {
     private static final Integer BEARER_OFFSET = 7;
     private static final String TOKEN_REGEX = "^Bearer .+";
 
-    @Value("${checkTokenUrl}")
-    private String checkTokenUrl;
-
-    private RestTemplate restTemplate;
+    private TokenRepository tokenRepository;
 
     @Autowired
-    public SecurityFilter(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
+    public SecurityFilter(TokenRepository tokenRepository) {
+        this.tokenRepository = tokenRepository;
     }
 
     @Override
@@ -78,7 +75,7 @@ public class SecurityFilter extends GenericFilterBean {
             return;
         }
         Date expiresAt = decode(token).getExpiresAt();
-        CallResponse callResponse = checkToken(requestToken, expiresAt.before(now().toDate()));
+        CallResponse callResponse = tokenRepository.checkToken(requestToken, expiresAt.before(now().toDate()));
 
         if (callResponse.hasError()) {
             response.sendError(UNAUTHORIZED.value(), callResponse.getError());
@@ -86,34 +83,5 @@ public class SecurityFilter extends GenericFilterBean {
         }
 
         filterChain.doFilter(servletRequest, servletResponse);
-    }
-
-    @Cacheable(value = "token", unless = "tokenExpired")
-    @CacheEvict(value = "token", condition = "tokenExpired", beforeInvocation = true)
-    public CallResponse checkToken(String requestToken, boolean tokenExpired) {
-        if (tokenExpired) {
-            CallResponse callResponse = new CallResponse();
-            callResponse.setError("Token is expired!");
-            return callResponse;
-        }
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(AUTHORIZATION, requestToken);
-
-        ResponseEntity<CallResponse> responseEntity = restTemplate.exchange(checkTokenUrl, GET, new HttpEntity<>
-                (headers), CallResponse.class);
-
-        return responseEntity.getBody();
-    }
-
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    static class CallResponse {
-        private String success;
-        private String error;
-
-        boolean hasError() {
-            return error != null;
-        }
     }
 }
