@@ -1,6 +1,7 @@
 package sk.flowy.msbiexport.security;
 
 import com.auth0.jwt.exceptions.JWTDecodeException;
+import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -26,6 +27,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
  * Only requests with authorized tokens are permitted to fly further.
  */
 @Component
+@Log4j
 @Order(value = HIGHEST_PRECEDENCE)
 public class SecurityFilter extends GenericFilterBean {
 
@@ -54,11 +56,13 @@ public class SecurityFilter extends GenericFilterBean {
         String requestToken = request.getHeader(AUTHORIZATION);
         if (requestToken == null) {
             response.sendError(BAD_REQUEST.value(), "Missing token!");
+            log.warn("Missing authorization token in http request");
             return;
         }
 
         if (!requestToken.matches(TOKEN_REGEX)) {
             response.sendError(BAD_REQUEST.value(), "Invalid token!");
+            log.warn("Token " + requestToken + " is invalid.");
             return;
         }
         String token = requestToken.substring(BEARER_OFFSET);
@@ -67,6 +71,7 @@ public class SecurityFilter extends GenericFilterBean {
             decode(token);
         } catch (JWTDecodeException e) {
             response.sendError(UNAUTHORIZED.value(), "Invalid token!");
+            log.warn("Not possible to decode token " + token);
             return;
         }
 
@@ -74,6 +79,7 @@ public class SecurityFilter extends GenericFilterBean {
 
         if (callResponse.hasError()) {
             response.sendError(UNAUTHORIZED.value(), callResponse.getError());
+            log.warn("Not possible to authorize token. Call returned error " + callResponse.getError());
             return;
         }
 

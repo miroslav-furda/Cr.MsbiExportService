@@ -1,5 +1,6 @@
 package sk.flowy.msbiexport.security;
 
+import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
@@ -22,6 +23,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
  * Default implementation of {@link TokenRepository} that uses spring cache.
  */
 @Repository
+@Log4j
 public class TokenRepositoryImpl implements TokenRepository {
 
     private static final String AUTHORIZATION = "Authorization";
@@ -54,6 +56,7 @@ public class TokenRepositoryImpl implements TokenRepository {
         if (tokenExpired) {
             CallResponse callResponse = new CallResponse();
             callResponse.setError("Token is expired!");
+            log.warn(token + " is expired!");
             return callResponse;
         }
         HttpHeaders headers = new HttpHeaders();
@@ -64,6 +67,7 @@ public class TokenRepositoryImpl implements TokenRepository {
             responseEntity = restTemplate.exchange(checkTokenUrl, GET, new HttpEntity<>(headers), CallResponse.class);
         } catch (HttpClientErrorException e) {
             responseEntity = new ResponseEntity<>(new CallResponse(null, e.getMessage()), BAD_REQUEST);
+            log.warn("Authorization server has thrown exception. " + e.getMessage());
         }
 
         return responseEntity.getBody();
