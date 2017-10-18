@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,9 @@ public class TokenRepositoryImpl implements TokenRepository {
     @Value("${checkTokenUrl}")
     private String checkTokenUrl;
 
+    @Autowired
+    private ApplicationContext applicationContext;
+
     private RestTemplate restTemplate;
 
     /**
@@ -47,7 +51,7 @@ public class TokenRepositoryImpl implements TokenRepository {
     @Override
     public CallResponse checkTokenValidity(String token) {
         Date expiresAt = decode(token).getExpiresAt();
-        return checkToken(token, expiresAt.before(now().toDate()));
+        return getSpringProxy().checkToken(token, expiresAt.before(now().toDate()));
     }
 
     @Cacheable(value = "token", unless = "#root.args[1]==true")
@@ -71,5 +75,12 @@ public class TokenRepositoryImpl implements TokenRepository {
         }
 
         return responseEntity.getBody();
+    }
+
+    /**
+     * Use proxy to hit cache
+     */
+    private TokenRepositoryImpl getSpringProxy() {
+        return applicationContext.getBean(TokenRepositoryImpl.class);
     }
 }
