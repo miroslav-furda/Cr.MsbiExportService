@@ -8,8 +8,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import sk.flowy.msbiexport.db.DbCaller;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 
 import javax.servlet.http.HttpServletResponse;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
@@ -34,38 +44,23 @@ public class RestHandler {
             value = "/flowy/export/MSBI",
             produces = "application/zip",
             method = GET)
-    public @ResponseBody ResponseEntity<String> createExportForMSBI(HttpServletResponse response) {
+    public @ResponseBody void createExportForMSBI(HttpServletResponse response) {
 
         log.info("I am getting all attributes ");
-        dbCaller.exportDataForMSBI();
 
-//        response.setStatus(HttpServletResponse.SC_OK);
-//        response.addHeader("Content-Disposition", "attachment; filename=\"test.zip\"");
-//
-//        ZipOutputStream zipOutputStream = null;
-//        try {
-//            zipOutputStream = new ZipOutputStream(response.getOutputStream());
-//            Stream files =  Files.list(dbCaller.getExportDirectoryHandler().getTempDirPath());
-//            files.forEach(getTableData(""));
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//
-//
-//        //packing files
-//        for (File file : files) {
-//            //new zip entry and copying inputstream with file to zipOutputStream, after all closing streams
-//            zipOutputStream.putNextEntry(new ZipEntry(file.getName()));
-//            FileInputStream fileInputStream = new FileInputStream(file);
-//
-//            IOUtils.copy(fileInputStream, zipOutputStream);
-//
-//            fileInputStream.close();
-//            zipOutputStream.closeEntry();
-//        }
-//
-//        zipOutputStream.close();
-        return null;
+        String filename = "MSBI_EXPORT_" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).toString() + ".zip";
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.addHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+
+        ZipOutputStream zipOutputStream = null;
+        try {
+            zipOutputStream = new ZipOutputStream(response.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        zipData(zipOutputStream);
+
     }
 
     @RequestMapping(
@@ -78,5 +73,31 @@ public class RestHandler {
         dbCaller.getAllFromTable(table, "");
         return null;
     }
+
+    private void zipData(ZipOutputStream zipOutputStream) {
+        Stream<Path> files = dbCaller.exportDataForMSBI();
+        ZipOutputStream finalZipOutputStream = zipOutputStream;
+        files.forEach(filePath -> {
+            try {
+                finalZipOutputStream.putNextEntry(new ZipEntry(filePath.toFile().getName()));
+                FileInputStream fileInputStream = new FileInputStream(filePath.toFile());
+
+                IOUtils.copy(fileInputStream,finalZipOutputStream);
+                fileInputStream.close();
+                finalZipOutputStream.closeEntry();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        try {
+            zipOutputStream.close();
+            finalZipOutputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            dbCaller.deleteTempData();
+        }
+    }
+
 
 }

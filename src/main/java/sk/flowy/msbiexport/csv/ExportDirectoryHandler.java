@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.stream.Stream;
 import java.util.zip.ZipOutputStream;
 
 @Data
@@ -24,15 +23,5 @@ public class ExportDirectoryHandler {
         }
         tempDirPath.toFile().deleteOnExit();
     }
-
-    public void createZippedDir() {
-        try {
-            Files.list(tempDirPath).forEach(System.out::println);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
 
 }

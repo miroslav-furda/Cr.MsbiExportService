@@ -9,12 +9,12 @@ import org.springframework.stereotype.Component;
 import sk.flowy.msbiexport.csv.ExportDirectoryHandler;
 import sk.flowy.msbiexport.csv.ExportFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Log4j
 @Component
@@ -70,13 +70,32 @@ public class DbCaller {
         exportFile.writeLineToCsv(data);
     }
 
-    public void exportDataForMSBI() {
+    public Stream<Path> exportDataForMSBI() {
+        Stream<Path> files = null;
         getListOfTables();
         log.info("Temp files are in: " + exportDirectoryHandler.getTempDirPath().toString());
         for (String tableName : listOfTables
              ) {
             getAllFromTable(tableName, exportDirectoryHandler.getTempDirPath().toString());
         }
+        try {
+            files = Files.list(exportDirectoryHandler.getTempDirPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return files;
     }
+
+    public void deleteTempData() {
+        try {
+            Files.list(exportDirectoryHandler.getTempDirPath()).forEach(file -> {
+                file.toFile().delete();
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        log.info("Deleting temporary csv files");
+    }
+
 }
 
