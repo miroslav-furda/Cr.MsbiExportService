@@ -53,6 +53,8 @@ public class ExportMsbiController {
         Stream<Path> exportData = csvCreationService.exportDataForMSBI();
         if(exportData != null) {
             zipCreationService.zipData(zipOutputStream, exportData);
+        } else {
+            log.info("No Export Data for exporting");
         }
 
     }
