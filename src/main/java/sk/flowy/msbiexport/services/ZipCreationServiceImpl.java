@@ -16,10 +16,9 @@ import java.util.zip.ZipOutputStream;
 @Log4j
 public class ZipCreationServiceImpl implements ZipCreationService{
 
+    @Override
     public void zipData(ZipOutputStream zipOutputStream, Stream<Path> files) {
-        files.forEach(filePath -> {
-            writeZip(filePath, zipOutputStream);
-        });
+        files.forEach(filePath -> writeZip(filePath, zipOutputStream));
         try {
             zipOutputStream.close();
         } catch (IOException e) {

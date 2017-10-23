@@ -11,8 +11,10 @@ import sk.flowy.msbiexport.services.ZipCreationService;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.stream.Stream;
 import java.util.zip.ZipOutputStream;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -48,6 +50,10 @@ public class ExportMsbiController {
             log.error("Export creation failed");
             throw new ExportNotCreatedException();
         }
-        zipCreationService.zipData(zipOutputStream, csvCreationService.exportDataForMSBI());
+        Stream<Path> exportData = csvCreationService.exportDataForMSBI();
+        if(exportData != null) {
+            zipCreationService.zipData(zipOutputStream, exportData);
+        }
+
     }
 }

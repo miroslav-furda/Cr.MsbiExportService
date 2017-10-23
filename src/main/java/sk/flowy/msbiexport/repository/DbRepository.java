@@ -16,8 +16,6 @@ public class DbRepository{
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private ResultSetHelperService resultSetHelperService = new ResultSetHelperService();
-
     public List<String> getListOfTables() {
         String query = DbQuery.getListOfTables();
         log.info("Querying DB: " + query);
@@ -30,6 +28,7 @@ public class DbRepository{
     }
 
     public List<String[]> getAllFromTable(String tableName) {
+        ResultSetHelperService resultSetHelperService = new ResultSetHelperService();
         String query = DbQuery.getAlldata(tableName);
         log.info("Query: " + query);
         List<String[]> data  = new ArrayList<>();

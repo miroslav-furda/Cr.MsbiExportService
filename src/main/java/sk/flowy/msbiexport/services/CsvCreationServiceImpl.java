@@ -4,6 +4,7 @@ import com.opencsv.CSVWriter;
 import lombok.Data;
 import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import sk.flowy.msbiexport.repository.DbRepository;
 
@@ -19,21 +20,19 @@ import java.util.stream.Stream;
 @Service
 public class CsvCreationServiceImpl implements CsvCreationService{
 
-    private String filePath;
-    private CSVWriter csvWriter;
+    @Value("${tempPath}")
+    private String tempDir;
+
     private final String TEMP_CSV_DIR = "MSBI_EXPORT";
 
     private DbRepository dbRepository;
-
-    @Autowired
-    private ExportDirectoryHandler exportDirectoryHandler;
 
     public CsvCreationServiceImpl(DbRepository dbRepository) {
         this.dbRepository = dbRepository;
     }
 
 
-    public void writeLineToCsv(List<String[]> data, String filePath) {
+    private void writeLineToCsv(List<String[]> data, String filePath) {
         try (CSVWriter csvWriter = new CSVWriter(new FileWriter(filePath), ',', CSVWriter.NO_QUOTE_CHARACTER, CSVWriter.NO_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);){
             csvWriter.writeAll(data,Boolean.TRUE);
         } catch (IOException e) {
@@ -42,16 +41,24 @@ public class CsvCreationServiceImpl implements CsvCreationService{
         }
     }
 
+    @Override
     public Stream<Path> exportDataForMSBI() {
         Stream<Path> files = null;
         List<String> listOfTables = dbRepository.getListOfTables();
-        log.info("Temp files are in: " + exportDirectoryHandler.getTempDirPath().toString());
+        Path tempDirPath = null;
+        try {
+            tempDirPath = Files.createTempDirectory(tempDir);
+            tempDirPath.toFile().deleteOnExit();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        log.info("Temp files are in: " + tempDirPath.toString());
         for (String tableName : listOfTables
                 ) {
-            writeLineToCsv(dbRepository.getAllFromTable(tableName), exportDirectoryHandler.getTempDirPath() + "/" +tableName);
+            writeLineToCsv(dbRepository.getAllFromTable(tableName), tempDirPath + "/" +tableName);
         }
         try {
-            files = Files.list(exportDirectoryHandler.getTempDirPath());
+            files = Files.list(tempDirPath);
         } catch (IOException e) {
             log.error("Error retrieving stream");
             e.printStackTrace();

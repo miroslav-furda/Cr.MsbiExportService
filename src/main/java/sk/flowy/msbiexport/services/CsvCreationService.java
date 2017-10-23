@@ -6,7 +6,5 @@ import java.util.stream.Stream;
 
 public interface CsvCreationService {
 
-    void writeLineToCsv(List<String[]> data, String filePath);
-
     Stream<Path> exportDataForMSBI();
 }
