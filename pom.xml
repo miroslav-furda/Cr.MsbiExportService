@@ -26,6 +26,7 @@
 		<mysql-connector-java.version>5.1.6</mysql-connector-java.version>
 		<joda-time.version>2.9.9</joda-time.version>
 		<jwt.version>3.2.0</jwt.version>
+		<swagger.version>2.6.0</swagger.version>
 	</properties>
 
 	<dependencies>
@@ -76,6 +77,17 @@
 			<groupId>com.opencsv</groupId>
 			<artifactId>opencsv</artifactId>
 			<version>${opencsv.version}</version>
+		</dependency>
+		<!-- SWAGGER -->
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>${swagger.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger-ui</artifactId>
+			<version>${swagger.version}</version>
 		</dependency>
 	</dependencies>
 
