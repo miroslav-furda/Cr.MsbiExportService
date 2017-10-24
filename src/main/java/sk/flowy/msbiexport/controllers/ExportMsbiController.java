@@ -2,6 +2,7 @@ package sk.flowy.msbiexport.controllers;
 
 import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import sk.flowy.msbiexport.exception.ExportNotCreatedException;
@@ -31,10 +32,10 @@ public class ExportMsbiController {
     private ZipCreationService zipCreationService;
 
     @RequestMapping(
-            value = "/export/MSBI",
+            value = "/export/MSBI/{klientID}",
             produces = "application/zip",
             method = GET)
-    public void createExportForMSBI(HttpServletResponse response) {
+    public void createExportForMSBI(@PathVariable Integer klientID, HttpServletResponse response) {
 
         log.info("Getting all attributes ");
 
@@ -50,7 +51,7 @@ public class ExportMsbiController {
             log.error("Export creation failed");
             throw new ExportNotCreatedException();
         }
-        Stream<Path> exportData = csvCreationService.exportDataForMSBI();
+        Stream<Path> exportData = csvCreationService.exportDataForMSBI(klientID);
         if(exportData != null) {
             zipCreationService.zipData(zipOutputStream, exportData);
         } else {

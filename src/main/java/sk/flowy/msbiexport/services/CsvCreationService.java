@@ -6,5 +6,5 @@ import java.util.stream.Stream;
 
 public interface CsvCreationService {
 
-    Stream<Path> exportDataForMSBI();
+    Stream<Path> exportDataForMSBI(Integer klienID);
 }

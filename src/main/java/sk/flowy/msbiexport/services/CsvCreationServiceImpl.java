@@ -42,7 +42,7 @@ public class CsvCreationServiceImpl implements CsvCreationService{
     }
 
     @Override
-    public Stream<Path> exportDataForMSBI() {
+    public Stream<Path> exportDataForMSBI(Integer klientID) {
         Stream<Path> files = null;
         List<String> listOfTables = dbRepository.getListOfTables();
         Path tempDirPath = null;
@@ -55,7 +55,7 @@ public class CsvCreationServiceImpl implements CsvCreationService{
         log.info("Temp files are in: " + tempDirPath.toString());
         for (String tableName : listOfTables
                 ) {
-            writeLineToCsv(dbRepository.getAllFromTable(tableName), tempDirPath + "/" +tableName);
+            writeLineToCsv(dbRepository.getAllFromTableForClient(tableName, klientID), tempDirPath + "/" +tableName);
         }
         try {
             files = Files.list(tempDirPath);

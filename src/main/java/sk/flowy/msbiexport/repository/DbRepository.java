@@ -50,5 +50,29 @@ public class DbRepository{
         });
         return data;
     }
+
+    public List<String[]> getAllFromTableForClient(String tableName, Integer klientID) {
+        ResultSetHelperService resultSetHelperService = new ResultSetHelperService();
+        String query = DbQuery.getAllDataForKlient(tableName, klientID);
+        log.info("Query: " + query);
+        List<String[]> data  = new ArrayList<>();
+        final int[] iteration = {0};
+        jdbcTemplate.query(query, resultSet -> {
+            String[] row;
+            if (iteration[0] == 0) {
+                row = resultSetHelperService.getColumnNames(resultSet);
+                data.add(row);
+                iteration[0]++;
+            }
+            try {
+                row = resultSetHelperService.getColumnValues(resultSet);
+                data.add(row);
+            } catch (IOException e) {
+                log.error("Problem with getting column values from resultSet");
+                e.printStackTrace();
+            }
+        });
+        return data;
+    }
 }
 
