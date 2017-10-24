@@ -76,6 +76,12 @@ public class DbQuery {
                     "INNER JOIN dodavatel_produkt ON produkt.id = dodavatel_produkt.id_produkt " +
                     "INNER JOIN dodavatel ON dodavatel_produkt.id_dodavatel = dodavatel.id " +
                     "INNER JOIN dodavatel_klient ON dodavatel.id = dodavatel_klient.id_dodavatel AND dodavatel_klient.id_klient = " + klientID;
+            case "metrika" : return "SELECT DISTINCT metrika.* FROM metrika INNER JOIN atributy ON metrika.id = atributy.id_metrika " +
+                    "INNER JOIN atributy_produkt ON atributy.id = atributy_produkt.id_atribut " +
+                    "INNER JOIN produkt ON atributy_produkt.id_produkt = produkt.id " +
+                    "INNER JOIN dodavatel_produkt ON produkt.id = dodavatel_produkt.id_produkt " +
+                    "INNER JOIN dodavatel ON dodavatel_produkt.id_dodavatel = dodavatel.id " +
+                    "INNER JOIN dodavatel_klient ON dodavatel.id = dodavatel_klient.id_dodavatel AND dodavatel_klient.id_klient = " + klientID;
             default: return "SELECT * FROM " + tableName;
         }
     }
