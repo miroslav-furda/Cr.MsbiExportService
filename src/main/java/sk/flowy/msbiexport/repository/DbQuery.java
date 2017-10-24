@@ -82,6 +82,19 @@ public class DbQuery {
                     "INNER JOIN dodavatel_produkt ON produkt.id = dodavatel_produkt.id_produkt " +
                     "INNER JOIN dodavatel ON dodavatel_produkt.id_dodavatel = dodavatel.id " +
                     "INNER JOIN dodavatel_klient ON dodavatel.id = dodavatel_klient.id_dodavatel AND dodavatel_klient.id_klient = " + klientID;
+            case "dph_hladina" : return "SELECT DISTINCT dph_hladina.* FROM dph_hladina " +
+                    "INNER JOIN produkt ON dph_hladina.id_produkt = produkt.id " +
+                    "INNER JOIN dodavatel_produkt ON produkt.id = dodavatel_produkt.id_produkt " +
+                    "INNER JOIN dodavatel ON dodavatel_produkt.id_dodavatel = dodavatel.id " +
+                    "INNER JOIN dodavatel_klient ON dodavatel.id = dodavatel_klient.id_dodavatel AND dodavatel_klient.id_klient = " + klientID;
+            case "dph" : return "SELECT DISTINCT dph.* FROM dph " +
+                    "INNER JOIN dph_hladina ON dph.id = dph_hladina.id_dph" +
+                    "INNER JOIN produkt ON dph_hladina.id_produkt = produkt.id " +
+                    "INNER JOIN dodavatel_produkt ON produkt.id = dodavatel_produkt.id_produkt " +
+                    "INNER JOIN dodavatel ON dodavatel_produkt.id_dodavatel = dodavatel.id " +
+                    "INNER JOIN dodavatel_klient ON dodavatel.id = dodavatel_klient.id_dodavatel AND dodavatel_klient.id_klient = " + klientID;
+            case "log_log" : return "SELECT log_log.* FROM log_log " +
+                    "INNER JOIN uzivatel ON log_log.id_user = uzivatel.id AND uzivatel.id_klient = " + klientID;
             default: return "SELECT * FROM " + tableName;
         }
     }
