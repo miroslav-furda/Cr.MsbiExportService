@@ -32,10 +32,10 @@ public class ExportMsbiController {
     private ZipCreationService zipCreationService;
 
     @RequestMapping(
-            value = "/export/MSBI/{klientID}",
+            value = "/export/MSBI/{clientId}",
             produces = "application/zip",
             method = GET)
-    public void createExportForMSBI(@PathVariable Integer klientID, HttpServletResponse response) {
+    public void createExportForMSBI(@PathVariable Integer clientId, HttpServletResponse response) {
 
         log.info("Getting all attributes ");
 
@@ -51,7 +51,7 @@ public class ExportMsbiController {
             log.error("Export creation failed");
             throw new ExportNotCreatedException();
         }
-        Stream<Path> exportData = csvCreationService.exportDataForMSBI(klientID);
+        Stream<Path> exportData = csvCreationService.exportDataForMSBI(clientId);
         if(exportData != null) {
             zipCreationService.zipData(zipOutputStream, exportData);
         } else {
