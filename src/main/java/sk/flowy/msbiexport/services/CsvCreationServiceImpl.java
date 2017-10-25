@@ -32,13 +32,13 @@ public class CsvCreationServiceImpl implements CsvCreationService{
 
 
     private void writeLineToCsv(List<String[]> data, String filePath) {
-        try (CSVWriter csvWriter = new CSVWriter(new FileWriter(filePath), ',', CSVWriter.NO_QUOTE_CHARACTER, CSVWriter.NO_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);){
-            if (!data.isEmpty()) {
+        if (!data.isEmpty()) {
+            try (CSVWriter csvWriter = new CSVWriter(new FileWriter(filePath), ',', CSVWriter.NO_QUOTE_CHARACTER, CSVWriter.NO_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);){
                 csvWriter.writeAll(data,Boolean.TRUE);
+            } catch (IOException e) {
+                log.error("Error closing csv writer");
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            log.error("Error closing csv writer");
-            e.printStackTrace();
         }
     }
 

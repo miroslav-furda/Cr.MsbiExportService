@@ -85,7 +85,7 @@ public class DbQuery {
                     "INNER JOIN dodavatel ON dodavatel_produkt.id_dodavatel = dodavatel.id " +
                     "INNER JOIN dodavatel_klient ON dodavatel.id = dodavatel_klient.id_dodavatel AND dodavatel_klient.id_klient = " + clientId;
             case "dph" : return "SELECT DISTINCT dph.* FROM dph " +
-                    "INNER JOIN dph_hladina ON dph.id = dph_hladina.id_dph" +
+                    "INNER JOIN dph_hladina ON dph.id = dph_hladina.id_dph " +
                     "INNER JOIN produkt ON dph_hladina.id_produkt = produkt.id " +
                     "INNER JOIN dodavatel_produkt ON produkt.id = dodavatel_produkt.id_produkt " +
                     "INNER JOIN dodavatel ON dodavatel_produkt.id_dodavatel = dodavatel.id " +
