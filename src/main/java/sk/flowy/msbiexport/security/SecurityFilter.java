@@ -26,7 +26,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
  * If "Authorization" header contains bearer token, then this token is verified with Authorization server.
  * Only requests with authorized tokens are permitted to fly further.
  */
-//@Component
+@Component
 @Log4j
 @Order(value = HIGHEST_PRECEDENCE)
 public class SecurityFilter extends GenericFilterBean {
@@ -52,6 +52,11 @@ public class SecurityFilter extends GenericFilterBean {
             throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
+
+        if (request.getRequestURI().equals("/v2/api-docs") || request.getRequestURI().startsWith("/webjars") || request.getRequestURI().startsWith("/swagger")) {
+            filterChain.doFilter(servletRequest, servletResponse);
+            return;
+        }
 
         String requestToken = request.getHeader(AUTHORIZATION);
         if (requestToken == null) {

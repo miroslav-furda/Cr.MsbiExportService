@@ -1,7 +1,6 @@
-package sk.flowy.msbiexport.services;
+package sk.flowy.msbiexport.service;
 
 import java.nio.file.Path;
-import java.util.List;
 import java.util.stream.Stream;
 
 public interface CsvCreationService {

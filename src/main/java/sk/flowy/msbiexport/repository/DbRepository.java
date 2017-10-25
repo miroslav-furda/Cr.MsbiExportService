@@ -31,9 +31,10 @@ public class DbRepository {
 
     public List<String[]> getAllFromTableForClient(String tableName, Integer clientId, Date lastGenerationTime) {
         ResultSetHelperService resultSetHelperService = new ResultSetHelperService();
-        String query = DbQuery.getAllDataForKlient(tableName, clientId, lastGenerationTime);
+        String query = DbQuery.getAllDataForClient(tableName, clientId, lastGenerationTime);
 
-        List<String[]> data = new ArrayList<>();
+        log.info("Query: " + query);
+        List<String[]> data  = new ArrayList<>();
         final int[] iteration = {0};
         jdbcTemplate.query(query, resultSet -> {
             String[] row;
