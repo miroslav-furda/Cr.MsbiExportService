@@ -25,7 +25,7 @@ public class SwaggerConfig {
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("sk.flowy.msbiexport.controllers"))
+                .apis(RequestHandlerSelectors.basePackage("sk.flowy.msbiexport.controller"))
                 .paths(PathSelectors.any())
                 .build()
                 .apiInfo(apiInfo());

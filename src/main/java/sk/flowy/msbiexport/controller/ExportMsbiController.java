@@ -1,12 +1,12 @@
-package sk.flowy.msbiexport.controllers;
+package sk.flowy.msbiexport.controller;
 
 import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import sk.flowy.msbiexport.exception.ExportNotCreatedException;
-import sk.flowy.msbiexport.services.CsvCreationService;
-import sk.flowy.msbiexport.services.ZipCreationService;
+import sk.flowy.msbiexport.service.CsvCreationService;
+import sk.flowy.msbiexport.service.ZipCreationService;
 
 import javax.servlet.http.HttpServletResponse;
 
