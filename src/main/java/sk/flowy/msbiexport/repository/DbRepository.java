@@ -27,9 +27,9 @@ public class DbRepository{
         return listOfTables;
     }
 
-    public List<String[]> getAllFromTable(String tableName) {
+    public List<String[]> getAllFromTableForClient(String tableName, Integer klientID) {
         ResultSetHelperService resultSetHelperService = new ResultSetHelperService();
-        String query = DbQuery.getAlldata(tableName);
+        String query = DbQuery.getAllDataForClient(tableName, klientID);
         log.info("Query: " + query);
         List<String[]> data  = new ArrayList<>();
         final int[] iteration = {0};
