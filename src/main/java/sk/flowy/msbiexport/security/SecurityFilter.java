@@ -53,6 +53,11 @@ public class SecurityFilter extends GenericFilterBean {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
 
+        if (request.getRequestURI().equals("/v2/api-docs") || request.getRequestURI().startsWith("/webjars") || request.getRequestURI().startsWith("/swagger")) {
+            filterChain.doFilter(servletRequest, servletResponse);
+            return;
+        }
+
         String requestToken = request.getHeader(AUTHORIZATION);
         if (requestToken == null) {
             response.sendError(BAD_REQUEST.value(), "Missing token!");
