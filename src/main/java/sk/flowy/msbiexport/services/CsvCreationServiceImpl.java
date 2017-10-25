@@ -3,7 +3,6 @@ package sk.flowy.msbiexport.services;
 import com.opencsv.CSVWriter;
 import lombok.Data;
 import lombok.extern.log4j.Log4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import sk.flowy.msbiexport.repository.DbRepository;
@@ -12,13 +11,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
 
 @Data
 @Log4j
 @Service
-public class CsvCreationServiceImpl implements CsvCreationService{
+public class CsvCreationServiceImpl implements CsvCreationService {
 
     @Value("${tempPath}")
     private String tempDir;
@@ -33,8 +33,9 @@ public class CsvCreationServiceImpl implements CsvCreationService{
 
 
     private void writeLineToCsv(List<String[]> data, String filePath) {
-        try (CSVWriter csvWriter = new CSVWriter(new FileWriter(filePath), ',', CSVWriter.NO_QUOTE_CHARACTER, CSVWriter.NO_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);){
-            csvWriter.writeAll(data,Boolean.TRUE);
+        try (CSVWriter csvWriter = new CSVWriter(new FileWriter(filePath), ',', CSVWriter.NO_QUOTE_CHARACTER,
+                CSVWriter.NO_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);) {
+            csvWriter.writeAll(data, Boolean.TRUE);
         } catch (IOException e) {
             log.error("Error closing csv writer");
             e.printStackTrace();
@@ -53,12 +54,17 @@ public class CsvCreationServiceImpl implements CsvCreationService{
             e.printStackTrace();
         }
         log.info("Temp files are in: " + tempDirPath.toString());
+
+        dbRepository.createTableAndPopulateItWithData();
+        Date lastGenerationTime = dbRepository.getTimestampForClient(klientID);
+
         for (String tableName : listOfTables
                 ) {
-            writeLineToCsv(dbRepository.getAllFromTableForClient(tableName, klientID), tempDirPath + "/" +tableName);
+            writeLineToCsv(dbRepository.getAllFromTableForClient(tableName, klientID, lastGenerationTime), tempDirPath + "/" + tableName);
         }
         try {
             files = Files.list(tempDirPath);
+            dbRepository.updateTimestampForClient(klientID);
         } catch (IOException e) {
             log.error("Error retrieving stream");
             e.printStackTrace();
