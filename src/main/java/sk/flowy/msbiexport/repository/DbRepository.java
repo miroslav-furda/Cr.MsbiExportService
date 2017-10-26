@@ -56,7 +56,7 @@ public class DbRepository {
                 row = resultSetHelperService.getColumnValues(resultSet);
                 data.add(row);
             } catch (IOException e) {
-                log.error("Problem with getting column values from resultSet. "+ e.toString());
+                log.error("Problem with getting column values from resultSet. ", e);
             }
         });
         return data;
