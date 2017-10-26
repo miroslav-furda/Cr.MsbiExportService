@@ -11,13 +11,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
 
 @Data
 @Log4j
 @Service
-public class CsvCreationServiceImpl implements CsvCreationService{
+public class CsvCreationServiceImpl implements CsvCreationService {
 
     @Value("${tempPath}")
     private String tempDir;
@@ -54,12 +55,16 @@ public class CsvCreationServiceImpl implements CsvCreationService{
             e.printStackTrace();
         }
         log.info("Temp files are in: " + tempDirPath.toString());
+
+        Date lastGenerationTime = dbRepository.getTimestampForClient(klientID);
+
         for (String tableName : listOfTables
                 ) {
-            writeLineToCsv(dbRepository.getAllFromTableForClient(tableName, klientID), tempDirPath + "/" +tableName);
+            writeLineToCsv(dbRepository.getAllFromTableForClient(tableName, klientID, lastGenerationTime), tempDirPath + "/" + tableName);
         }
         try {
             files = Files.list(tempDirPath);
+            dbRepository.updateTimestampForClient(klientID);
         } catch (IOException e) {
             log.error("Error retrieving stream");
             e.printStackTrace();
