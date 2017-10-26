@@ -56,7 +56,6 @@ public class CsvCreationServiceImpl implements CsvCreationService {
         }
         log.info("Temp files are in: " + tempDirPath.toString());
 
-        dbRepository.createTableAndPopulateItWithData();
         Date lastGenerationTime = dbRepository.getTimestampForClient(klientID);
 
         for (String tableName : listOfTables

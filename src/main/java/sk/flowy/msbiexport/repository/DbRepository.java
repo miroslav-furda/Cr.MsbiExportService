@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -20,6 +21,14 @@ public class DbRepository {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @PostConstruct
+    public void createDbTableIfDoesntExists(){
+        if (!checkIfTableExists()){
+            jdbcTemplate.execute(DbQuery.createGenerationCsvTable(GENERATION_CSV_TABLE_NAME));
+            jdbcTemplate.execute(DbQuery.populateGenerationCsvTableWithData());
+        }
+    }
 
     public List<String> getListOfTables() {
         String query = DbQuery.getListOfTables();
@@ -47,8 +56,7 @@ public class DbRepository {
                 row = resultSetHelperService.getColumnValues(resultSet);
                 data.add(row);
             } catch (IOException e) {
-                log.error("Problem with getting column values from resultSet");
-                e.printStackTrace();
+                log.error("Problem with getting column values from resultSet. "+ e.toString());
             }
         });
         return data;
@@ -60,13 +68,6 @@ public class DbRepository {
 
     public Date getTimestampForClient(Integer clientId) {
         return jdbcTemplate.queryForObject(DbQuery.getDateForClientQuery(clientId), Date.class);
-    }
-
-    public void createTableAndPopulateItWithData(){
-        if (!checkIfTableExists()){
-            jdbcTemplate.execute(DbQuery.createGenerationCsvTable(GENERATION_CSV_TABLE_NAME));
-            jdbcTemplate.execute(DbQuery.populateGenerationCsvTableWithData());
-        }
     }
 
     private boolean checkIfTableExists() {
