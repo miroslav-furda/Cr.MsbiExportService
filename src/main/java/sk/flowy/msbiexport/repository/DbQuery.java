@@ -222,6 +222,26 @@ public class DbQuery {
             case "generovanie_csv":
                 query = "SELECT * FROM generovanie_csv WHERE client_id=" + clientId;
                 break;
+            case "zmena":
+                query = "SELECT zmena.* FROM zmena " +
+                        "INNER JOIN uzivatel ON zmena.id_uzivatel = uzivatel.id AND uzivatel.id_klient = " +
+                        clientId + " WHERE zmena.koniec>'" + new
+                        Timestamp(date.getTime()) + "'";
+                break;
+            case "pokladna_vyber":
+                query = "SELECT DISTINCT pokladna_vyber.* FROM pokladna_vyber " +
+                        "INNNER JOIN zmena ON pokladna_vyber.id_zmena = zmena.id " +
+                        "INNER JOIN uzivatel ON zmena.id_uzivatel = uzivatel.id AND uzivatel.id_klient = " +
+                        clientId + " WHERE pokladna_vyber.created_at>'" + new
+                        Timestamp(date.getTime()) + "'";
+                break;
+            case "pokladna_vklad":
+                query = "SELECT DISTINCT pokladna_vklad.* FROM pokladna_vklad " +
+                        "INNNER JOIN zmena ON pokladna_vklad.id_zmena = zmena.id " +
+                        "INNER JOIN uzivatel ON zmena.id_uzivatel = uzivatel.id AND uzivatel.id_klient = " +
+                        clientId + " WHERE pokladna_vklad.created_at>'" + new
+                        Timestamp(date.getTime()) + "'";
+                break;
             default:
                 return "SELECT * FROM " + tableName + " WHERE 0 = 1" ;
         }
