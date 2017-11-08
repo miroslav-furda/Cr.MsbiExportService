@@ -1,4 +1,4 @@
-package sk.flowy.msbiexport.repository;
+package sk.codexa.cr.msbiexport.repository;
 
 import com.opencsv.ResultSetHelperService;
 import lombok.extern.log4j.Log4j;

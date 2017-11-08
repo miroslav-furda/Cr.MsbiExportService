@@ -1,4 +1,4 @@
-package sk.flowy.msbiexport.exception;
+package sk.codexa.cr.msbiexport.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

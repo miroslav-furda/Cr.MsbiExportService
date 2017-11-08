@@ -1,4 +1,4 @@
-package sk.flowy.msbiexport.repository;
+package sk.codexa.cr.msbiexport.repository;
 
 import java.sql.Timestamp;
 import java.util.Date;

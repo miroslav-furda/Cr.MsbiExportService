@@ -1,4 +1,4 @@
-package sk.flowy.msbiexport.security;
+package sk.codexa.cr.msbiexport.security;
 
 /**
  * Retrieves information about validity of token input.

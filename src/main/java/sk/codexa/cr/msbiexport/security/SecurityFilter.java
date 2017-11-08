@@ -1,4 +1,4 @@
-package sk.flowy.msbiexport.security;
+package sk.codexa.cr.msbiexport.security;
 
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import lombok.extern.log4j.Log4j;

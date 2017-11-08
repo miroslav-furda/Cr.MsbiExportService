@@ -1,11 +1,11 @@
-package sk.flowy.msbiexport.service;
+package sk.codexa.cr.msbiexport.service;
 
 import com.opencsv.CSVWriter;
 import lombok.Data;
 import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import sk.flowy.msbiexport.repository.DbRepository;
+import sk.codexa.cr.msbiexport.repository.DbRepository;
 
 import java.io.FileWriter;
 import java.io.IOException;

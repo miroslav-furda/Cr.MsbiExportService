@@ -1,4 +1,4 @@
-package sk.flowy.msbiexport;
+package sk.codexa.cr.msbiexport;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

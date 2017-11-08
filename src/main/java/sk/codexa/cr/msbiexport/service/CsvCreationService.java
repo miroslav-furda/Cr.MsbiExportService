@@ -1,4 +1,4 @@
-package sk.flowy.msbiexport.service;
+package sk.codexa.cr.msbiexport.service;
 
 import java.nio.file.Path;
 import java.util.stream.Stream;
